@@ -1,30 +1,12 @@
-# Sensor Placement Problem
+# Modeling and Simulation of Systems
 
-## dataset
+This repository contains code and documentation for a project developed during the Modeling and Simulation of Systems course at AGH University of Science and Technology.
 
-> np.Hanoi
+The main objective of the project is to design and implement an algorithm for determining the optimal placement of sensors for leak detection in water distribution network based on the following research paper [Pressure Sensor Placement for Leak Localization Using Simulated Annealing with Hyperparameter Optimization](https://ieeexplore.ieee.org/document/9595369).
+In our work, we use the [EPANET](https://www.epa.gov/water-research/epanet) simulator to perform hydraulic simulations, generate synthetic data, and evaluate sensor placement strategies for leak detection.
 
->ustalona liczba sensorów
+## Checkpoints
 
-## działanie symulacji
+All of the project milestones will be documented in the [checkpoints](/checkpoints/) directory.
 
-> przyjmuje estymaty zapotrzebowań na wodę
-
-> zwraca estymaty ciśnień
-
-> pomiary w węzłach
-
-> nie mamy danych prawdziwych - zamiast nich dodajemy wyciej jako zwiększone zapotrzebowanie
-
-> zakładamy tylko jeden wyciek
-
-## klasyfikator
-> kNN - n sąsiadów / metryka (zrobić z KNN regresję???)
-
-> działa na różnicach (residuals) pomiędzy przewidywaniami, a rzeczywistymi danymi
-
-## optymalizacja
-
-> minimalizujemy funkcję kosztu - leak location error - pomyłka odległości -liczona alg. Floyda-Warshalla
-
-> symulowane wyżarzanie -proponowane (czy coś innego???)
+1. [Problem and domain analysis](/checkpoints/checkpoint1.md)
