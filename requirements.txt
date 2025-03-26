@@ -1,0 +1,5 @@
+epyt
+jupyter
+matplotlib
+numpy
+numba
