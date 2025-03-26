@@ -10,3 +10,4 @@ In our work, we use the [EPANET](https://www.epa.gov/water-research/epanet) simu
 All of the project milestones will be documented in the [checkpoints](/checkpoints/) directory.
 
 1. [Problem and domain analysis](/checkpoints/checkpoint1.md)
+2. [Analysis of selected tool](/checkpoints/checkpoint2.md)
