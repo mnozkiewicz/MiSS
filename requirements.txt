@@ -1,5 +1,6 @@
-epyt
+epyt~=1.2.1
 jupyter
-matplotlib
-numpy
+matplotlib~=3.10.1
+numpy~=2.1.3
 numba
+pandas~=2.2.3
