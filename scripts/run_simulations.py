@@ -1,4 +1,5 @@
 import os
+
 EPANET_HOME = "/home/wladek/EPANET/build/bin/runepanet"  # NALEŻY DOSTOSOWAĆ
 
 
