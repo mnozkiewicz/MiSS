@@ -1,6 +1,7 @@
 epyt~=1.2.1
-jupyter
+jupyter~=1.1.1
 matplotlib~=3.10.1
 numpy~=2.1.3
-numba
+numba~=0.61.0
 pandas~=2.2.3
+scikit-learn~=1.6.1

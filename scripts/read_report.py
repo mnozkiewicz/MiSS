@@ -12,8 +12,8 @@ tail = "  Reservoir"
 sep = "[ |\t]+"
 
 
-def read_raport(raport_path):
-    with open(raport_path) as raport:
+def read_report(report_path):
+    with open(report_path) as raport:
         data = raport.read()
     data_hours = re.findall(
         "Node Results at .*? hrs:.*?Reservoir", data, flags=re.DOTALL
@@ -22,7 +22,7 @@ def read_raport(raport_path):
         re.sub(sep, ";", re.sub(header, "", re.sub(tail, "", i))) for i in data_hours
     ]
     first_relevant_timestamp = int(
-        os.path.basename(raport_path).split(".")[0].split("_")[-1]
+        os.path.basename(report_path).split(".")[0].split("_")[-1]
     )
     hourly_datasets = []
     for data_string in data_hours[first_relevant_timestamp:]:
@@ -35,7 +35,7 @@ def read_raport(raport_path):
 
 if __name__ == "__main__":
     file_path = "../J49373_4.rpt"
-    hourly_datasets = read_raport(file_path)
+    hourly_datasets = read_report(file_path)
     print(len(hourly_datasets))
     for df in hourly_datasets:
         print(df)

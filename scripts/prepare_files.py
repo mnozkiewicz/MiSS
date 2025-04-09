@@ -9,7 +9,7 @@ REPORTING_STEP = TIME_STEP * 36  # 6 hours
 N_STEPS = 6 * 24  # 24 hours
 
 
-def prepare_files(file_path, leaks_path):
+def prepare_files(file_path: str, leaks_path: str):
     G = epanet(file_path)
 
     G.setTimeReportingStep(REPORTING_STEP)
@@ -17,7 +17,16 @@ def prepare_files(file_path, leaks_path):
     G.setTimePatternStep(TIME_STEP)  # Same as reporting step
     if not os.path.exists(leaks_path):
         os.mkdir(leaks_path)
+
     print(f"generating {len(G.getNodeIndex())} input files...")
+
+    # Generate input with no leaks in order to know the baseline measures for the network
+    # It is important for the machine learning algorithm later
+    G.setDemandModel("PDA", pmin=0, preq=0.1, pexp=0.5)
+    G.saveInputFile(
+        os.path.join(leaks_path, f"baseline_1.inp")
+    )
+
     for leak_node_id in G.getNodeIndex():
         node_name = G.getNodeNameID(leak_node_id)
         leak_start = np.random.randint(
