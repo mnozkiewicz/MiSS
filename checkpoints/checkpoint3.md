@@ -21,3 +21,7 @@ Node Results at .*? hrs:
   Node                  L/s         m         m
   ----------------------------------------------
   ```
+
+  # KNN and Simulated Annealing
+
+  So we've implemented the basic pipeline, which loads the data from the EPANET runs and a graph dscribing the network. The search for the optimal sensor placement is then conducted via Simulated Annealing algorithm. Each candidate solution in the Annealing algorithm is evaluated using KNN classifier. The whole pipeline is show in this [notebook](../notebooks/leak_prediction.ipynb).
