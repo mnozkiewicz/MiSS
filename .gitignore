@@ -1,7 +1,17 @@
+# VSCode
 .DS_STORE
-.idea
 .vscode
-*venv
+
+# Pycharm
+.idea
+
+# Virtual environments
+venv
+.venv
+
+# python compiled bytecode
+**/*__pycache__
+
 EPANET
 data/*
 !**/.gitkeep
