@@ -22,7 +22,7 @@ def read_report(report_path: str):
         re.sub(sep, ";", re.sub(header, "", re.sub(tail, "", i))) for i in data_hours
     ]
     first_relevant_timestamp = int(
-        os.path.basename(report_path).split(".")[0].split("_")[-1]
+        os.path.basename(report_path).split(".")[0].split("_")[1]
     )
     hourly_datasets = []
     for data_string in data_hours[first_relevant_timestamp:]:
