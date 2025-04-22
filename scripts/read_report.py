@@ -12,7 +12,7 @@ tail = "  Reservoir"
 sep = "[ |\t]+"
 
 
-def read_report(report_path):
+def read_report(report_path: str):
     with open(report_path) as raport:
         data = raport.read()
     data_hours = re.findall(
@@ -22,7 +22,7 @@ def read_report(report_path):
         re.sub(sep, ";", re.sub(header, "", re.sub(tail, "", i))) for i in data_hours
     ]
     first_relevant_timestamp = int(
-        os.path.basename(report_path).split(".")[0].split("_")[-1]
+        os.path.basename(report_path).split(".")[0].split("_")[1]
     )
     hourly_datasets = []
     for data_string in data_hours[first_relevant_timestamp:]:
