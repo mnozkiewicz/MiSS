@@ -12,7 +12,7 @@ tail = "  Reservoir"
 sep = "[ |\t]+"
 
 
-def read_report(report_path):
+def read_report(report_path: str):
     with open(report_path) as raport:
         data = raport.read()
     data_hours = re.findall(
