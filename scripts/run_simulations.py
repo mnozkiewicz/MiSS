@@ -2,10 +2,11 @@ import os
 
 os.environ["EPANET_HOME"] = "EPANET/build/bin/runepanet"  # NALEŻY DOSTOSOWAĆ
 
+
 def run_simulations(leaks_path: str, reports_path: str) -> None:
     if "EPANET_HOME" not in os.environ:
         raise AttributeError(
-            "You need to set 'EPANET_HOME environmental variable" \
+            "You need to set 'EPANET_HOME environmental variable"
             "It should point to EPANET executable"
         )
 
@@ -14,7 +15,7 @@ def run_simulations(leaks_path: str, reports_path: str) -> None:
     inp_files = os.listdir(leaks_path)
     if not os.path.exists(reports_path):
         os.mkdir(reports_path)
-        
+
     for file in inp_files:
         name = file.split(".")[0]
         in_path = os.path.join(leaks_path, file)
