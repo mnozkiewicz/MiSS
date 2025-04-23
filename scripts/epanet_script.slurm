@@ -37,6 +37,8 @@ OUT_FILE="$REPORTS_PATH/$BASENAME.rpt"
 echo "Running EPANET on $INP_FILE"
 "$EPANET_EXECUTABLE" "$INP_FILE" "$OUT_FILE"
 
+rm "$INP_FILE"
+
 # Optional: check status
 if [ $? -ne 0 ]; then
     echo "EPANET run failed for $INP_FILE"
