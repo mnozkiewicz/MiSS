@@ -6,7 +6,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=1G
-#SBATCH --time=00:30:00
+#SBATCH --time=00:03:00
 #SBATCH --partition=plgrid
 
 # CONFIGURATION
@@ -14,8 +14,8 @@
 TOTAL_JOBS=2237
 # Number of Slurm array tasks
 ARRAY_TASKS=100
-LEAKS_PATH="./MISS_DATA"
-REPORTS_PATH="./MISS_OUTPUT"
+LEAKS_PATH="$SCRATCH/MISS_INPUT"
+REPORTS_PATH="$SCRATCH/MISS_OUTPUT"
 EPANET_EXECUTABLE="runepanet"
 
 # Ensure reports directory exists
@@ -26,7 +26,7 @@ JOBS_PER_TASK=$(( (TOTAL_JOBS + ARRAY_TASKS - 1) / ARRAY_TASKS ))
 
 # Calculate the range of jobs for this array task
 START_INDEX=$(( SLURM_ARRAY_TASK_ID * JOBS_PER_TASK ))
-END_INDEX=$(( START_INDEX + JOBS_PER_TASK - 1 ))
+END_INDEX=$(( START_INDEX + JOBS_PER_TASK - 1))
 
 # Clamp to total number of jobs
 if [ $END_INDEX -ge $TOTAL_JOBS ]; then
@@ -41,11 +41,11 @@ echo "Processing indices from $START_INDEX to $END_INDEX"
 for i in $(seq $START_INDEX $END_INDEX); do
     echo "Processing input file $i"
     # Get the file for this array task
-    INP_FILE="${INP_FILES[$SLURM_ARRAY_TASK_ID]}"
+    INP_FILE="${INP_FILES[$i]}"
 
     # If file doesn't exist (in case array range > number of files), exit safely
     if [ -z "$INP_FILE" ]; then
-      echo "No .inp file found for SLURM_ARRAY_TASK_ID=$SLURM_ARRAY_TASK_ID"
+      echo "No .inp file found for ID=$i"
       exit 0
     fi
     # Extract filename without extension
