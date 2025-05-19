@@ -6,13 +6,12 @@ from .run_simulations import run_simulations
 
 
 def run_simulations_in_batches(
-        file_path: str, 
-        leaks_path: str, 
-        reports_path: str,
-        batch_size: int = 10,
-        leaks_per_node: int = 10
-    ) -> None:
-
+    file_path: str,
+    leaks_path: str,
+    reports_path: str,
+    batch_size: int = 10,
+    leaks_per_node: int = 10,
+) -> None:
     G = epanet(file_path)
 
     node_indexes = G.getNodeIndex()
@@ -22,10 +21,10 @@ def run_simulations_in_batches(
         node_leak_list = list(node_indexes[start:end])
         # Generating new files
         prepare_files(
-            file_path, 
-            leaks_path, 
-            leaks_per_node=leaks_per_node, 
-            leak_node_ids=node_leak_list
+            file_path,
+            leaks_path,
+            leaks_per_node=leaks_per_node,
+            leak_node_ids=node_leak_list,
         )
 
         # Generating reports from files currently in leaks folder
