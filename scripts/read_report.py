@@ -6,7 +6,7 @@ import pandas as pd
 header = """Node Results at .*? hrs:
   ----------------------------------------------
                      Demand      Head  Pressure
-  Node                  L/s         m         m
+  Node .*?
   ----------------------------------------------"""
 tail = "  Reservoir"
 sep = "[ |\t]+"
