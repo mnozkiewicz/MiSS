@@ -12,5 +12,4 @@ All of the project milestones will be documented in the [checkpoints](/checkpoin
 1. [Problem and domain analysis](/checkpoints/checkpoint1.md)
 2. [Analysis of selected tool](/checkpoints/checkpoint2.md)
 3. [Defined objectives and project scope](/checkpoints/checkpoint3.md)
-4&5. [Completed Functionalities and Initial Results](/checkpoints/checkpoint4&5.md)
-
+4. [Completed Functionalities and Initial Results(Checkpoints 4 & 5)](/checkpoints/checkpoint4&5.md)
