@@ -15,3 +15,8 @@ venv
 EPANET
 data/*
 !**/.gitkeep
+
+
+# output files
+MISS_OUTPUT/
+stats.txt

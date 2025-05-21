@@ -53,11 +53,11 @@ class Network:
         self.node_id_to_position_mapping = dict(zip(G.NodeNameID, self.node_indexes))
         self.position_to_node_id = dict(map(reversed, self.node_id_to_position_mapping.items()))
 
-    def plot_with_ids(self):
-        self.G.plot(nodesID=self.node_ids, fontsize=3)
+    def plot_with_ids(self, **kwargs):
+        self.G.plot(nodesID=self.node_ids, fontsize=3, **kwargs)
 
-    def plot_with_indexes(self):
-        self.G.plot(nodesindex=list(map(lambda x: x + 1, self.node_indexes)), fontsize=3)
+    def plot_with_indexes(self, **kwargs):
+        self.G.plot(nodesindex=list(map(lambda x: x + 1, self.node_indexes)), fontsize=3, **kwargs)
 
     def neighbor_array(self, vertex: int) -> np.ndarray:
         return np.array(list(self.adj_list[vertex]))
