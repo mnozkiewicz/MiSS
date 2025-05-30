@@ -67,4 +67,63 @@ fi
 
 
 
+#!/bin/bash
+#SBATCH --job-name=epanet_array
+#SBATCH --output=logs/epanet_%A_%a.out
+#SBATCH --error=logs/epanet_%A_%a.err
+#SBATCH --array=0-99
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=1G
+#SBATCH --time=00:03:00
+#SBATCH --partition=plgrid
+
+# CONFIGURATION
+TOTAL_JOBS=2237
+ARRAY_TASKS=100
+ZIP_FILE="$SCRATCH/MISS_INPUT.zip"
+REPORTS_PATH="$SCRATCH/MISS_OUTPUT"
+EPANET_EXECUTABLE="runepanet"
+
+mkdir -p "$REPORTS_PATH"
+
+# Number of jobs per array task (ceil division)
+JOBS_PER_TASK=$(( (TOTAL_JOBS + ARRAY_TASKS - 1) / ARRAY_TASKS ))
+
+# Calculate the range for this task
+START_INDEX=$(( SLURM_ARRAY_TASK_ID * JOBS_PER_TASK ))
+END_INDEX=$(( START_INDEX + JOBS_PER_TASK - 1 ))
+if [ $END_INDEX -ge $TOTAL_JOBS ]; then
+    END_INDEX=$(( TOTAL_JOBS - 1 ))
+fi
+
+# Get the list of .inp files in the zip
+mapfile -t INP_FILES < <(unzip -Z1 "$ZIP_FILE" | grep '\.inp$' | sort)
+
+echo "Processing files from index $START_INDEX to $END_INDEX"
+
+for i in $(seq $START_INDEX $END_INDEX); do
+    INP_PATH="${INP_FILES[$i]}"
+    if [ -z "$INP_PATH" ]; then
+        echo "No .inp file at index $i"
+        continue
+    fi
+
+    BASENAME=$(basename "$INP_PATH" .inp)
+    OUT_FILE="$REPORTS_PATH/$BASENAME.rpt"
+    TMP_INP="/tmp/${BASENAME}_$$.inp"
+
+    echo "Extracting $INP_PATH..."
+    unzip -p "$ZIP_FILE" "$INP_PATH" > "$TMP_INP"
+
+    if [ ! -s "$TMP_INP" ]; then
+        echo "Failed to extract $INP_PATH"
+        continue
+    fi
+
+    echo "Running EPANET on $TMP_INP"
+    "$EPANET_EXECUTABLE" "$TMP_INP" "$OUT_FILE"
+
+    rm -f "$TMP_INP"
+done
 
