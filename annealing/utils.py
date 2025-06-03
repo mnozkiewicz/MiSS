@@ -7,7 +7,7 @@ import os
 def extract_node_id(path: str) -> int:
     normpath = os.path.normpath(path)
     filename = normpath.split("/")[-1]
-    return int(filename.split("_")[0])
+    return str(filename.split("_")[0])
 
 
 def report_to_pandas(report: list[pd.DataFrame], leakage_node: int) -> pd.DataFrame:

@@ -10,7 +10,7 @@ def run_simulations_in_batches(
     leaks_path: str,
     reports_path: str,
     batch_size: int = 10,
-    leaks_per_node: int = 10,
+    leaks_per_node: int = 60,
 ) -> None:
     G = epanet(file_path)
 
@@ -37,7 +37,9 @@ def run_simulations_in_batches(
 
 
 if __name__ == "__main__":
-    input_file = "data/Hanoi.inp"
-    leaks_path = "data/leaks"
-    reports_path = "data/reports"
+
+    dataset = "hanoi"
+    input_file = f"data/{dataset}/Hanoi.inp"
+    leaks_path = f"data/{dataset}/leaks"
+    reports_path = f"data/{dataset}/reports"
     run_simulations_in_batches(input_file, leaks_path, reports_path)

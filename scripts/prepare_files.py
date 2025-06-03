@@ -15,7 +15,7 @@ def prepare_single_file(
     G: epanet,
     leaks_path: str,
     leak_node_id: int,
-    leak_scale: float = 3.0,
+    leak_scale: float,
     reporting_frequency: int = 4,
 ) -> None:
     reporting_step = TIME_STEP * N_STEPS // reporting_frequency  # 6 hours

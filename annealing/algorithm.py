@@ -1,19 +1,22 @@
 import numpy as np
 from .graph_utils import Network
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.base import ClassifierMixin
+
+from .AnnealingConfig import AnnealingConfig
 from pydantic import BaseModel, Field
-from typing import List
+from typing import Any
+
+from typing import List, Any
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-class AnnealingConfig(BaseModel):
-    solution_size: int
-    knn_neighbors: int
-    knn_d_max: int
-    epochs: int
-    steps_per_epoch: int
-    initial_temperature: float
-    temperature_decay: float
+
 
 
 class ExperimentLogger(BaseModel):
@@ -38,7 +41,7 @@ class ExperimentLogger(BaseModel):
             self.best_solution = list(solution_state)
 
     def plot(self):
-        fig, ax1 = plt.subplots(figsize=(10, 6))  # Set default figure size
+        fig, ax1 = plt.subplots(figsize=(8, 5))  # Set default figure size
 
         # Plot temperature (left y-axis)
         ax1.plot(self.temperature, label='Temperature', color='tab:red')
@@ -82,26 +85,63 @@ def generate_neighbor(vertex_subset: np.ndarray, network: Network) -> np.ndarray
 
     return new_vertices
 
+def create_predictor(algorithm_name: str, algorithm_params: dict[str, Any]) -> ClassifierMixin:
+    match algorithm_name:
+        case "knn":
+            return KNeighborsClassifier(**algorithm_params)
+        case "logistic_regression":
+            return LogisticRegression(**algorithm_params)
+        case "gaussian_nb":
+            return GaussianNB(**algorithm_params)
+        case "decision_tree":
+            return DecisionTreeClassifier(**algorithm_params)
+        case "random_forest":
+            return RandomForestClassifier(**algorithm_params)
+        case "lda":
+            return LinearDiscriminantAnalysis(**algorithm_params)
+        case _:
+            raise ValueError(f"Unknow algorithm {algorithm_name}")
+        
+
+def train_predictor(
+        vertices_subset: np.ndarray, 
+        pressures_train: np.ndarray,
+        labels_train: np.ndarray,
+        algorithm: str,
+        algorithm_params: dict[str, Any],
+    ) -> ClassifierMixin:
+
+    train_subset = pressures_train[:, vertices_subset]
+    # valid_subset = pressures_valid[:, vertices_subset]
+
+    predictor = create_predictor(algorithm, algorithm_params)
+    predictor.fit(train_subset, labels_train)
+    return predictor
+
 def evaluate_solution(
         vertices_subset: np.ndarray, 
         network: Network,
-        train_pressures: np.ndarray,
-        train_labels: np.ndarray,
-        test_pressures: np.ndarray,
-        test_labels: np.ndarray,
-        n_neighbors: int = 5,
+        pressures_train: np.ndarray,
+        labels_train: np.ndarray,
+        pressures_valid: np.ndarray,
+        labels_valid: np.ndarray,
+        algorithm: str,
+        algorithm_params: dict[str, Any],
         d_max: float = 5
     ) -> float:
 
-    train_subset = train_pressures[:, vertices_subset]
-    test_subset = test_pressures[:, vertices_subset]
+    predictor = train_predictor(
+        vertices_subset, 
+        pressures_train, 
+        labels_train, 
+        algorithm, 
+        algorithm_params
+    )
 
-    knn = KNeighborsClassifier(n_neighbors=n_neighbors)
-    knn.fit(train_subset, train_labels)
+    valid_subset = pressures_valid[:, vertices_subset]
+    pred_label = predictor.predict(valid_subset)
 
-    pred_label = knn.predict(test_subset)
-
-    dists = network.distances[pred_label, test_labels] / d_max
+    dists = network.distances[pred_label, labels_valid] / d_max
     dists[dists >= 1.0] = 1.0 
     loss = dists.sum() / pred_label.shape[0]
     return loss
@@ -125,7 +165,10 @@ def annealing(
     cur_energy = evaluate_solution(
         solution, network, 
         train_pressures, train_labels,
-        test_pressures, test_labels
+        test_pressures, test_labels,
+        config.algorithm,
+        config.algorithm_params,
+        config.d_max
     )
 
     T = config.initial_temperature
@@ -139,8 +182,9 @@ def annealing(
                 new_solution, network,
                 train_pressures, train_labels,
                 test_pressures, test_labels,
-                config.knn_neighbors,
-                config.knn_d_max
+                config.algorithm,
+                config.algorithm_params,
+                config.d_max
             )
 
             if next_energy < cur_energy:
@@ -154,8 +198,8 @@ def annealing(
 
             logger.record_step(T, cur_energy, solution)
 
-        if (i + 1)  % 100 == 0:
-            logger.plot()
+        # if (i + 1)  % 100 == 0:
+            # logger.plot()
         T *= config.temperature_decay
         
     return logger
