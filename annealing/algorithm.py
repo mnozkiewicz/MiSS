@@ -1,122 +1,13 @@
 import numpy as np
 from .graph_utils import Network
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.base import ClassifierMixin
-
+from .classification import train_predictor
 from .AnnealingConfig import AnnealingConfig
-from pydantic import BaseModel, Field
+from .ExperimentLogger import ExperimentLogger
 from typing import Any
 
-from typing import List, Any
+from typing import Any
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 
-
-
-
-class ExperimentLogger(BaseModel):
-    config: AnnealingConfig
-    temperature: List[float] = Field(default_factory=list)
-    energy: List[float] = Field(default_factory=list)
-    best_energy: float = Field(default=float("inf"))
-    best_solution: List[int] = Field(default_factory=list)
-
-    def record_step(
-            self, 
-            temperature: float, 
-            energy_value: float, 
-            solution_state: np.ndarray
-        ) -> None:
-
-        self.temperature.append(temperature)
-        self.energy.append(energy_value)
-
-        if energy_value < self.best_energy:
-            self.best_energy = energy_value
-            self.best_solution = list(solution_state)
-
-    def plot(self):
-        fig, ax1 = plt.subplots(figsize=(8, 5))  # Set default figure size
-
-        # Plot temperature (left y-axis)
-        ax1.plot(self.temperature, label='Temperature', color='tab:red')
-        ax1.set_ylabel('Temperature', color='tab:red')
-        ax1.tick_params(axis='y', labelcolor='tab:red')
-        ax1.grid(True, which='both', linestyle='--', linewidth=0.5)  # Add grid
-
-        # Plot energy (right y-axis)
-        ax2 = ax1.twinx()
-        ax2.plot(self.energy, label='Energy', color='tab:blue')
-        ax2.set_ylabel('Energy', color='tab:blue')
-        ax2.tick_params(axis='y', labelcolor='tab:blue')
-
-        # Title and x-axis limits
-        ax1.set_title("Energy and Temperature During Simulated Annealing")
-        ax1.set_xlim(0, self.config.epochs * self.config.steps_per_epoch)
-
-        # Combine legends
-        lines_1, labels_1 = ax1.get_legend_handles_labels()
-        lines_2, labels_2 = ax2.get_legend_handles_labels()
-        ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper right')
-
-        plt.tight_layout()
-        plt.show()
-
-
-def random_solution(vertices: np.ndarray, m: int) -> np.ndarray:
-    return np.random.permutation(vertices)[:m]
-
-def generate_neighbor(vertex_subset: np.ndarray, network: Network) -> np.ndarray:
-    count = 0
-    while count < 100:
-        vertex_to_swap = np.random.choice(vertex_subset)
-        neighboring_vertex = np.random.choice(network.neighbor_array(vertex_to_swap))
-        if neighboring_vertex not in vertex_subset:
-            break
-        count += 1
-
-    new_vertices = vertex_subset.copy()
-    new_vertices[new_vertices == vertex_to_swap] = neighboring_vertex
-
-    return new_vertices
-
-def create_predictor(algorithm_name: str, algorithm_params: dict[str, Any]) -> ClassifierMixin:
-    match algorithm_name:
-        case "knn":
-            return KNeighborsClassifier(**algorithm_params)
-        case "logistic_regression":
-            return LogisticRegression(**algorithm_params)
-        case "gaussian_nb":
-            return GaussianNB(**algorithm_params)
-        case "decision_tree":
-            return DecisionTreeClassifier(**algorithm_params)
-        case "random_forest":
-            return RandomForestClassifier(**algorithm_params)
-        case "lda":
-            return LinearDiscriminantAnalysis(**algorithm_params)
-        case _:
-            raise ValueError(f"Unknow algorithm {algorithm_name}")
-        
-
-def train_predictor(
-        vertices_subset: np.ndarray, 
-        pressures_train: np.ndarray,
-        labels_train: np.ndarray,
-        algorithm: str,
-        algorithm_params: dict[str, Any],
-    ) -> ClassifierMixin:
-
-    train_subset = pressures_train[:, vertices_subset]
-    # valid_subset = pressures_valid[:, vertices_subset]
-
-    predictor = create_predictor(algorithm, algorithm_params)
-    predictor.fit(train_subset, labels_train)
-    return predictor
 
 def evaluate_solution(
         vertices_subset: np.ndarray, 
@@ -145,6 +36,23 @@ def evaluate_solution(
     dists[dists >= 1.0] = 1.0 
     loss = dists.sum() / pred_label.shape[0]
     return loss
+
+def random_solution(vertices: np.ndarray, m: int) -> np.ndarray:
+    return np.random.permutation(vertices)[:m]
+
+def generate_neighbor(vertex_subset: np.ndarray, network: Network) -> np.ndarray:
+    count = 0
+    while count < 100:
+        vertex_to_swap = np.random.choice(vertex_subset)
+        neighboring_vertex = np.random.choice(network.neighbor_array(vertex_to_swap))
+        if neighboring_vertex not in vertex_subset:
+            break
+        count += 1
+
+    new_vertices = vertex_subset.copy()
+    new_vertices[new_vertices == vertex_to_swap] = neighboring_vertex
+
+    return new_vertices
 
 
 def probability_fun(delta, T):
@@ -198,9 +106,6 @@ def annealing(
 
             logger.record_step(T, cur_energy, solution)
 
-        # if (i + 1)  % 100 == 0:
-            # logger.plot()
         T *= config.temperature_decay
         
     return logger
-
