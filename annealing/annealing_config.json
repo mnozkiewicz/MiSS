@@ -1,9 +1,0 @@
-{
-    "solution_size": 8,
-    "knn_neighbors": 5,
-    "knn_d_max": 20,
-    "epochs": 500,
-    "steps_per_epoch": 10,
-    "initial_temperature": 50.0,
-    "temperature_decay": 0.99
-}

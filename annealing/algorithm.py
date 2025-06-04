@@ -1,69 +1,41 @@
 import numpy as np
 from .graph_utils import Network
-from sklearn.neighbors import KNeighborsClassifier
-from pydantic import BaseModel, Field
-from typing import List
+from .classification import train_predictor
+from .AnnealingConfig import AnnealingConfig
+from .ExperimentLogger import ExperimentLogger
+from typing import Any
+
+from typing import Any
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-
-class AnnealingConfig(BaseModel):
-    solution_size: int
-    knn_neighbors: int
-    knn_d_max: int
-    epochs: int
-    steps_per_epoch: int
-    initial_temperature: float
-    temperature_decay: float
 
 
-class ExperimentLogger(BaseModel):
-    config: AnnealingConfig
-    temperature: List[float] = Field(default_factory=list)
-    energy: List[float] = Field(default_factory=list)
-    best_energy: float = Field(default=float("inf"))
-    best_solution: List[int] = Field(default_factory=list)
+def evaluate_solution(
+        vertices_subset: np.ndarray, 
+        network: Network,
+        pressures_train: np.ndarray,
+        labels_train: np.ndarray,
+        pressures_valid: np.ndarray,
+        labels_valid: np.ndarray,
+        algorithm: str,
+        algorithm_params: dict[str, Any],
+        d_max: float = 5
+    ) -> float:
 
-    def record_step(
-            self, 
-            temperature: float, 
-            energy_value: float, 
-            solution_state: np.ndarray
-        ) -> None:
+    predictor = train_predictor(
+        vertices_subset, 
+        pressures_train, 
+        labels_train, 
+        algorithm, 
+        algorithm_params
+    )
 
-        self.temperature.append(temperature)
-        self.energy.append(energy_value)
+    valid_subset = pressures_valid[:, vertices_subset]
+    pred_label = predictor.predict(valid_subset)
 
-        if energy_value < self.best_energy:
-            self.best_energy = energy_value
-            self.best_solution = list(solution_state)
-
-    def plot(self):
-        fig, ax1 = plt.subplots(figsize=(10, 6))  # Set default figure size
-
-        # Plot temperature (left y-axis)
-        ax1.plot(self.temperature, label='Temperature', color='tab:red')
-        ax1.set_ylabel('Temperature', color='tab:red')
-        ax1.tick_params(axis='y', labelcolor='tab:red')
-        ax1.grid(True, which='both', linestyle='--', linewidth=0.5)  # Add grid
-
-        # Plot energy (right y-axis)
-        ax2 = ax1.twinx()
-        ax2.plot(self.energy, label='Energy', color='tab:blue')
-        ax2.set_ylabel('Energy', color='tab:blue')
-        ax2.tick_params(axis='y', labelcolor='tab:blue')
-
-        # Title and x-axis limits
-        ax1.set_title("Energy and Temperature During Simulated Annealing")
-        ax1.set_xlim(0, self.config.epochs * self.config.steps_per_epoch)
-
-        # Combine legends
-        lines_1, labels_1 = ax1.get_legend_handles_labels()
-        lines_2, labels_2 = ax2.get_legend_handles_labels()
-        ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper right')
-
-        plt.tight_layout()
-        plt.show()
-
+    dists = network.distances[pred_label, labels_valid] / d_max
+    dists[dists >= 1.0] = 1.0 
+    loss = dists.sum() / pred_label.shape[0]
+    return loss
 
 def random_solution(vertices: np.ndarray, m: int) -> np.ndarray:
     return np.random.permutation(vertices)[:m]
@@ -81,30 +53,6 @@ def generate_neighbor(vertex_subset: np.ndarray, network: Network) -> np.ndarray
     new_vertices[new_vertices == vertex_to_swap] = neighboring_vertex
 
     return new_vertices
-
-def evaluate_solution(
-        vertices_subset: np.ndarray, 
-        network: Network,
-        train_pressures: np.ndarray,
-        train_labels: np.ndarray,
-        test_pressures: np.ndarray,
-        test_labels: np.ndarray,
-        n_neighbors: int = 5,
-        d_max: float = 5
-    ) -> float:
-
-    train_subset = train_pressures[:, vertices_subset]
-    test_subset = test_pressures[:, vertices_subset]
-
-    knn = KNeighborsClassifier(n_neighbors=n_neighbors)
-    knn.fit(train_subset, train_labels)
-
-    pred_label = knn.predict(test_subset)
-
-    dists = network.distances[pred_label, test_labels] / d_max
-    dists[dists >= 1.0] = 1.0 
-    loss = dists.sum() / pred_label.shape[0]
-    return loss
 
 
 def probability_fun(delta, T):
@@ -125,7 +73,10 @@ def annealing(
     cur_energy = evaluate_solution(
         solution, network, 
         train_pressures, train_labels,
-        test_pressures, test_labels
+        test_pressures, test_labels,
+        config.algorithm,
+        config.algorithm_params,
+        config.d_max
     )
 
     T = config.initial_temperature
@@ -139,8 +90,9 @@ def annealing(
                 new_solution, network,
                 train_pressures, train_labels,
                 test_pressures, test_labels,
-                config.knn_neighbors,
-                config.knn_d_max
+                config.algorithm,
+                config.algorithm_params,
+                config.d_max
             )
 
             if next_energy < cur_energy:
@@ -154,9 +106,6 @@ def annealing(
 
             logger.record_step(T, cur_energy, solution)
 
-        if (i + 1)  % 100 == 0:
-            logger.plot()
         T *= config.temperature_decay
         
     return logger
-
