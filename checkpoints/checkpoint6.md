@@ -35,7 +35,7 @@ This metric calculates the average number of hops between the predicted node and
 The **Mean Predicted Distance** is defined as:
 
 $$
-\text{MPD} = \frac{1}{N} \sum_{i=1}^{N} d(\hat{y}_i, y_i)
+MPD = \frac{1}{N} \sum_{i=1}^{N} d(\hat{y}_i, y_i)
 $$
 
 Where:
@@ -58,7 +58,7 @@ We apply an **exponential decay function** to the distance between the predicted
 Then the **Weighted Accuracy** is defined as:
 
 $$
-\text{WA}_\lambda = \frac{1}{N} \sum_{i=1}^{N} e^{-\lambda \cdot d(\hat{y}_i, y_i)}
+WA_{\lambda} = \frac{1}{N} \sum_{i=1}^{N} e^{-\lambda \cdot d(\hat{y}_i, y_i)}
 $$
 
 Where:
